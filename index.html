@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tic-Tac-Toe Revision - Grade 8 Quiz 2</title>
+<style>
+:root{--bg:#0a1130;--panel:#131d48;--panel2:#1b2860;--line:#2f3f88;--x:#3fd0ff;--o:#ff5fc8;--gold:#ffcc4d;--green:#35df96;--red:#ff5d73;--grey:#aab6dd}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:radial-gradient(circle at 20% 10%,#1c1a5c,#0a1130 55%,#060a1e);color:#fff;font-family:"Segoe UI",Arial,sans-serif}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;font-weight:700}
+.btn{background:var(--gold);color:#1a1300;padding:10px 18px;font-size:18px}
+.btn.ghost{background:var(--panel2);color:#fff;border:1px solid var(--line)}
+.btn.x{background:var(--x);color:#04203a}.btn.o{background:var(--o);color:#3a0428}
+.screen{display:none;height:100vh;padding:10px}
+.screen.on{display:block}
+/* setup */
+#setup{overflow:auto}
+.setup{max-width:760px;margin:4vh auto;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:24px}
+.setup h1{font-size:clamp(34px,5vw,56px);margin:0;text-align:center;letter-spacing:2px}
+.setup h1 .xx{color:var(--x)}.setup h1 .oo{color:var(--o)}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0;align-items:center}
+.row label{font-weight:700;color:var(--grey);min-width:120px}
+.row input{font:inherit;font-size:19px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:#0b1336;color:#fff;flex:1;min-width:160px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{background:var(--panel2);color:#fff;border:1px solid var(--line);padding:9px 14px;font-size:17px}
+.seg button.on{background:var(--gold);color:#1a1300;border-color:var(--gold)}
+.small{font-size:14px;color:var(--grey)}
+/* game layout */
+#game{display:none;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:12px}
+#game.on{display:grid}
+.col{display:flex;flex-direction:column;gap:10px;min-height:0}
+.top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.team{flex:1;display:flex;align-items:center;gap:10px;background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:6px 12px;min-width:0}
+.team .sym{font-size:34px;font-weight:900;line-height:1}
+.team .nm{font-weight:800;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.team .wins{font-size:26px;font-weight:900}
+.team.turn{box-shadow:0 0 18px currentColor;border-color:currentColor}
+#tX{color:var(--x)}#tO{color:var(--o)}
+.team .nm,.team .wins{color:#fff}
+.iconbtn{background:var(--panel);border:1px solid var(--line);color:#fff;border-radius:99px;padding:6px 12px;font-size:14px}
+#status{text-align:center;font-size:20px;font-weight:700;min-height:28px}
+/* board */
+#boardWrap{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+#board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(100%,62vh);aspect-ratio:1}
+.sq{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;color:#fff;transition:transform .15s}
+.sq:hover:not(.taken){transform:scale(1.03);border-color:var(--gold)}
+.sq .ic{font-size:clamp(22px,3.2vh,34px)}
+.sq .tp{font-size:clamp(12px,1.7vh,16px);font-weight:700;text-align:center;line-height:1.15;margin-top:4px}
+.sq.center{border-color:var(--gold);background:linear-gradient(160deg,#2a2160,#131d48)}
+.sq.center .tp:after{content:" ★";color:var(--gold)}
+.sq.taken{cursor:default}
+.sq .mark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(60px,12vh,120px);font-weight:900;animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+.sq .mark.X{color:var(--x);text-shadow:0 0 22px var(--x)}.sq .mark.O{color:var(--o);text-shadow:0 0 22px var(--o)}
+.sq.taken .ic,.sq.taken .tp{opacity:.12}
+.sq.win{background:#2c2a10;border-color:var(--gold)}
+@keyframes pop{from{transform:scale(0)}to{transform:none}}
+#winline{position:absolute;inset:0;pointer-events:none}
+/* question */
+#qpanel{display:none;flex:1;min-height:0;flex-direction:column;gap:10px;background:var(--panel);border:2px solid var(--gold);border-radius:18px;padding:14px;overflow:auto}
+#qpanel.on{display:flex}
+.qtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--panel2);border-radius:99px;padding:4px 12px;font-weight:700;font-size:14px}
+.chip.who{font-size:16px}
+#qtext{font-size:clamp(20px,2.4vw,30px);font-weight:700;line-height:1.35}
+#qtext .m,.opt{font-family:Cambria,"Times New Roman",serif}
+#timer{display:flex;align-items:center;gap:10px}
+#tbar{flex:1;height:18px;border-radius:99px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
+#tfill{height:100%;width:100%;background:var(--green)}
+#tnum{font-size:30px;font-weight:900;min-width:52px;text-align:right;font-variant-numeric:tabular-nums}
+#tnum.low{color:var(--red);animation:blink .5s infinite}
+@keyframes blink{50%{opacity:.35}}
+#opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{background:var(--panel2);border:2px solid var(--line);color:#fff;font-size:clamp(20px,2.3vw,28px);padding:12px;border-radius:14px;min-height:64px;display:flex;align-items:center;gap:12px}
+.opt b{font-family:"Segoe UI",Arial;color:var(--gold);font-size:.8em}
+.opt:hover:not(:disabled){border-color:var(--gold)}
+.opt.right{background:#0f7a52;border-color:var(--green)}
+.opt.wrong{background:#6d1d33;border-color:var(--red);animation:nope .35s}
+.opt:disabled{cursor:default}
+@keyframes nope{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+#explain{display:none;background:rgba(15,122,82,.25);border:1px solid var(--green);border-radius:14px;padding:10px 14px;font-size:19px;line-height:1.5}
+#explain.on{display:block}
+#explain .m{font-family:Cambria,"Times New Roman",serif}
+#banner{font-size:22px;font-weight:800;text-align:center;min-height:30px}
+.qact{display:flex;gap:10px;flex-wrap:wrap}
+/* maths */
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.8em;line-height:1.05;margin:0 .1em}
+.fr>span:first-child{border-bottom:.08em solid currentColor;padding:0 .15em}
+sup .fr{font-size:.85em}
+.rt{white-space:nowrap}.rt>span{border-top:.07em solid currentColor;padding:0 .08em;margin-left:.02em}
+/* working space */
+#ws{display:flex;flex-direction:column;gap:8px;min-height:0;height:calc(100vh - 20px)}
+.wsbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.wsbar .title{font-weight:800;color:var(--gold);margin-right:6px}
+.sw{width:30px;height:30px;border-radius:50%;border:3px solid transparent;padding:0}
+.sw.on{border-color:#fff}
+#cvwrap{position:relative;flex:1;min-height:0;border:2px solid var(--line);border-radius:16px;overflow:hidden;background:#fdfdf8}
+#cvwrap.dark{background:#0d1640}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+#cvhint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#c9cfe0;pointer-events:none}
+.wsbar .tbtn{background:var(--panel2);color:#fff;border:1px solid var(--line);padding:6px 10px;font-size:14px}
+.wsbar .tbtn.on{background:var(--gold);color:#1a1300}
+@media(max-width:900px){#game.on{grid-template-columns:1fr}#ws{height:70vh}.screen{height:auto}}
+/* overlay */
+#over{position:fixed;inset:0;background:rgba(3,6,20,.85);display:none;align-items:center;justify-content:center;z-index:10;flex-direction:column;gap:14px;text-align:center}
+#over.on{display:flex}
+#over h2{font-size:clamp(40px,7vw,80px);margin:0}
+.confetti{position:fixed;top:-20px;width:10px;height:14px;z-index:20;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+</style>
+</head>
+<body>
+<!-- ================= SETUP ================= -->
+<section class="screen on" id="setup">
+ <div class="setup">
+  <h1><span class="xx">X</span> TIC-TAC-TOE <span class="oo">O</span></h1>
+  <p style="text-align:center;font-size:20px;color:var(--grey);margin:6px 0 4px">Grade 8 · Quiz 2 revision · three in a row wins the round</p>
+    <div class="row"><label for="nX">Team X</label><input id="nX" value="Team X" maxlength="20"></div>
+  <div class="row"><label for="nO">Team O</label><input id="nO" value="Team O" maxlength="20"></div>
+  <div class="row"><label>Timer</label><div class="seg" id="segTime"><button data-v="30">30 s</button><button data-v="45">45 s</button><button data-v="60" class="on">60 s</button><button data-v="90">90 s</button></div></div>
+  <div class="row"><label>Rounds</label><div class="seg" id="segRounds"><button data-v="1">1</button><button data-v="3" class="on">Best of 3</button><button data-v="5">Best of 5</button></div></div>
+  <div class="small" style="margin:8px 0 14px;line-height:1.5">
+   How to play: the team whose turn it is picks a square. A question opens and the timer starts. Answer right: the square is yours.
+   Answer wrong or run out of time: the other team can <b>STEAL</b> the square with one answer. The centre ★ square is harder.
+   Use the working space on the right to solve.</div>
+  <div style="text-align:center"><button class="btn" id="startBtn" style="font-size:22px;padding:12px 30px">▶ START GAME</button></div>
+ </div>
+</section>
+
+<!-- ================= GAME ================= -->
+<section class="screen" id="game">
+ <div class="col">
+  <div class="top">
+   <div class="team" id="tX"><span class="sym">X</span><span class="nm" id="lX">Team X</span><span class="wins" id="wX">0</span></div>
+   <div class="team" id="tO"><span class="sym">O</span><span class="nm" id="lO">Team O</span><span class="wins" id="wO">0</span></div>
+   <button class="iconbtn" id="mute">🔊</button><button class="iconbtn" id="menu">⚙ New game</button>
+  </div>
+  <div id="status"></div>
+  <div id="boardWrap"><div id="board"></div><svg id="winline"></svg></div>
+  <div id="qpanel">
+   <div class="qtop"><span class="chip who" id="qwho"></span><span class="chip" id="qtopic"></span><span style="flex:1"></span><button class="iconbtn" id="pauseBtn">⏸ Pause</button></div>
+   <div id="timer"><div id="tbar"><div id="tfill"></div></div><span id="tnum">60</span></div>
+   <div id="qtext"></div>
+   <div id="opts"></div>
+   <div id="banner"></div>
+   <div id="explain"></div>
+   <div class="qact"><button class="btn ghost" id="revealBtn">Show answer</button><button class="btn" id="backBtn" style="display:none">Back to the board ▶</button></div>
+  </div>
+ </div>
+ <div id="ws">
+  <div class="wsbar"><span class="title">✏ WORKING SPACE</span>
+   <button class="sw on" data-c="#142b4d" style="background:#142b4d"></button>
+   <button class="sw" data-c="#e0218a" style="background:#e0218a"></button>
+   <button class="sw" data-c="#1f8a4c" style="background:#1f8a4c"></button>
+   <button class="sw" data-c="#2e6fd8" style="background:#2e6fd8"></button>
+   <button class="tbtn" id="penS">Thin</button><button class="tbtn on" id="penM">Medium</button><button class="tbtn" id="penL">Thick</button>
+   <button class="tbtn" id="eraser">Eraser</button><button class="tbtn" id="undo">Undo</button><button class="tbtn" id="clear">Clear</button>
+   <button class="tbtn" id="gridBtn">Grid</button><button class="tbtn on" id="autoClr" title="Clear the board for every new question">Auto-clear</button>
+  </div>
+  <div id="cvwrap"><div id="cvhint">Work it out here</div><canvas id="cv"></canvas></div>
+ </div>
+</section>
+
+<div id="over"><h2 id="overTitle"></h2><div id="overSub" style="font-size:24px;color:var(--grey)"></div><div style="display:flex;gap:10px"><button class="btn" id="overBtn">Next round ▶</button></div></div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const M="−";
+const F=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const NF=(a,b)=>M+F(a,b);
+const R=x=>`<span class="rt">&radic;<span>${x}</span></span>`;
+const P=(b,e)=>`${b}<sup>${e}</sup>`;
+const pt=(x,y)=>`(${x<0?M+(-x):x}, ${y<0?M+(-y):y})`;
+const X="&times;";
+const mm=s=>`<span class="m">${s}</span>`;
+
+/* ================= QUESTION BANKS =================
+   each square: topic, icon, qs:[{q, o:[4 options], a: index, ex}] */
+const BANK={
+"8":[
+ {t:"Decimal places",i:"🎯",qs:[
+  {q:`Round ${mm("5.6849")} to 2 decimal places.`,o:["5.68","5.69","5.7","5.685"],a:0,ex:`5.68 | 49: the next digit is 4, so keep: <b>5.68</b>.`},
+  {q:`Round ${mm("0.0745")} to 2 decimal places.`,o:["0.075","0.08","0.07","0.0745"],a:2,ex:`0.07 | 45: the next digit is 4, so keep: <b>0.07</b>.`},
+  {q:`Round ${mm("19.996")} to 2 decimal places.`,o:["19.99","20.0","20.00","20"],a:2,ex:`19.99 | 6: round up, 19.99 becomes 20.00. Keep two decimal places: <b>20.00</b>.`}]},
+ {t:"Significant figures",i:"🔍",qs:[
+  {q:`Round ${mm("0.004827")} to 2 significant figures.`,o:["0.0048","0.00483","0.005","0.0049"],a:0,ex:`Start at the 4: 0.00 48 | 27. Next digit 2, keep: <b>0.0048</b>.`},
+  {q:`Round ${mm("38 650")} to 3 significant figures.`,o:["386","38 600","38 700","39 000"],a:2,ex:`38 6 | 50: next digit 5, round up: <b>38 700</b>.`},
+  {q:`How many significant figures in ${mm("0.0500")}?`,o:["1","2","3","5"],a:2,ex:`Leading zeros do not count. 5, 0, 0 count: <b>3</b>.`}]},
+ {t:"Bounds",i:"📐",qs:[
+  {q:`${mm("7.2")} is correct to 1 decimal place. Upper bound?`,o:["7.3","7.25","7.15","7.249"],a:1,ex:`Half of 0.1 is 0.05: 7.2 + 0.05 = <b>7.25</b>.`},
+  {q:`${mm("450")} is correct to the nearest 10. Lower bound?`,o:["440","445","449","455"],a:1,ex:`Half of 10 is 5: 450 ${M} 5 = <b>445</b>.`},
+  {q:`A mass is ${mm("3.8 kg")} to the nearest 0.1 kg. Which is correct?`,o:[mm("3.75 &le; m &le; 3.85"),mm("3.75 &le; m &lt; 3.85"),mm("3.7 &le; m &lt; 3.9"),mm("3.75 &lt; m &le; 3.85")],a:1,ex:`Lower 3.75 (can equal), upper 3.85 (must be less): <b>3.75 &le; m &lt; 3.85</b>.`}]},
+ {t:"Index laws",i:"✖️",qs:[
+  {q:`Simplify ${mm(P("y",9)+" "+X+" "+P("y",3)+" &divide; "+P("y",5))}`,o:[mm(P("y",7)),mm(P("y",17)),mm(P("y","5.4")),mm(P("y",6))],a:0,ex:`9 + 3 ${M} 5 = 7: <b>${mm(P("y",7))}</b>.`},
+  {q:`Simplify ${mm(P("("+P("x",4)+")",3))}`,o:[mm(P("x",7)),mm(P("x",12)),mm(P("x",64)),mm("3"+P("x",4))],a:1,ex:`Power of a power: multiply 4 ${X} 3 = 12: <b>${mm(P("x",12))}</b>.`},
+  {q:`${mm(P(7,0)+" = ?")}`,o:["0","7","1","70"],a:2,ex:`Any non-zero number to the power 0 is <b>1</b>.`}]},
+ {t:"MIXED CHALLENGE",i:"🏆",center:true,qs:[
+  {q:`Work out ${mm("(2 "+X+" "+P(10,M+"3")+") "+X+" (6 "+X+" "+P(10,5)+")")} in standard form.`,o:[mm("12 "+X+" "+P(10,2)),mm("1.2 "+X+" "+P(10,3)),mm("1.2 "+X+" "+P(10,2)),mm("1.2 "+X+" "+P(10,M+"15"))],a:1,ex:`2 ${X} 6 = 12, ${mm(P(10,M+"3")+" "+X+" "+P(10,5)+" = "+P(10,2))}. 12 ${X} ${mm(P(10,2))} = <b>${mm("1.2 "+X+" "+P(10,3))}</b>.`},
+  {q:`Evaluate ${mm(P(8,M+F(2,3)))}`,o:[mm(M+"4"),mm(F(1,4)),"4",mm(F(1,16))],a:1,ex:`Cube root of 8 is 2, squared is 4. Negative power: <b>${mm(F(1,4))}</b>.`},
+  {q:`Simplify ${mm(R(48)+" "+M+" "+R(12))}`,o:[mm(R(36)),mm("2"+R(3)),"6",mm("4"+R(3))],a:1,ex:`${mm(R(48)+" = 4"+R(3))}, ${mm(R(12)+" = 2"+R(3))}. 4${M}2 = <b>${mm("2"+R(3))}</b>.`}]},
+ {t:"Negative & fractional powers",i:"🔋",qs:[
+  {q:`Evaluate ${mm(P(4,M+"3"))}`,o:[mm(M+"64"),mm(F(1,64)),mm(M+"12"),mm(F(1,12))],a:1,ex:`${mm(P(4,M+"3")+" = "+F(1,P(4,3)))} = <b>${mm(F(1,64))}</b>.`},
+  {q:`Evaluate ${mm(P(125,F(2,3)))}`,o:["25","5","50","83.3"],a:0,ex:`Cube root of 125 is 5, then 5${mm(P("",2))} = <b>25</b>.`},
+  {q:`Evaluate ${mm(P(16,M+F(1,2)))}`,o:[mm(M+"4"),"8",mm(F(1,4)),mm(F(1,8))],a:2,ex:`${mm(R(16))} = 4, negative power: <b>${mm(F(1,4))}</b>.`}]},
+ {t:"Standard form",i:"🚀",qs:[
+  {q:`Write ${mm("0.00063")} in standard form.`,o:[mm("6.3 "+X+" "+P(10,M+"4")),mm("63 "+X+" "+P(10,M+"5")),mm("6.3 "+X+" "+P(10,4)),mm("6.3 "+X+" "+P(10,M+"3"))],a:0,ex:`Move the point 4 places: <b>${mm("6.3 "+X+" "+P(10,M+"4"))}</b>.`},
+  {q:`${mm("(3 "+X+" "+P(10,4)+") "+X+" (4 "+X+" "+P(10,5)+")")}`,o:[mm("12 "+X+" "+P(10,9)),mm("1.2 "+X+" "+P(10,9)),mm("1.2 "+X+" "+P(10,10)),mm("1.2 "+X+" "+P(10,20))],a:2,ex:`12 ${X} ${mm(P(10,9))} = <b>${mm("1.2 "+X+" "+P(10,10))}</b>.`},
+  {q:`Write ${mm("5.2 "+X+" "+P(10,3))} as an ordinary number.`,o:["520","5200","52 000","0.0052"],a:1,ex:`Move the point 3 places right: <b>5200</b>.`}]},
+ {t:"Simplify surds",i:"√",qs:[
+  {q:`Simplify ${mm(R(50))}`,o:[mm("25"+R(2)),mm("5"+R(2)),mm("2"+R(5)),mm("10"+R(5))],a:1,ex:`${mm(R(50)+" = "+R(25)+" "+X+" "+R(2))} = <b>${mm("5"+R(2))}</b>.`},
+  {q:`Simplify ${mm(R(75))}`,o:[mm("3"+R(5)),mm("5"+R(3)),mm("25"+R(3)),mm("15"+R(5))],a:1,ex:`${mm(R(75)+" = "+R(25)+" "+X+" "+R(3))} = <b>${mm("5"+R(3))}</b>.`},
+  {q:`Simplify ${mm(R(200))}`,o:[mm("10"+R(2)),mm("2"+R(10)),mm("100"+R(2)),mm("20"+R(10))],a:0,ex:`${mm(R(200)+" = "+R(100)+" "+X+" "+R(2))} = <b>${mm("10"+R(2))}</b>.`}]},
+ {t:"Surd operations",i:"➕",qs:[
+  {q:`${mm(R(3)+" "+X+" "+R(12))}`,o:[mm(R(15)),"6","36",mm("2"+R(3))],a:1,ex:`${mm(R(36))} = <b>6</b>.`},
+  {q:`${mm(R(18)+" + "+R(8))}`,o:[mm(R(26)),mm("5"+R(2)),mm("6"+R(2)),mm("5"+R(4))],a:1,ex:`${mm("3"+R(2)+" + 2"+R(2))} = <b>${mm("5"+R(2))}</b>.`},
+  {q:`Rationalise ${mm(F(12,R(3)))}`,o:[mm("4"+R(3)),mm("12"+R(3)),"4",mm("6"+R(3))],a:0,ex:`${mm(F("12"+R(3),3))} = <b>${mm("4"+R(3))}</b>.`}]}
+]};
+
+/* ================= STATE ================= */
+let grade="8",secs=60,rounds=3,names={X:"Team X",O:"Team O"},wins={X:0,O:0},round=1,startTeam="X";
+let board,turn,used,curQ=null,phase="board",tLeft=0,tTimer=null,paused=false,stealer=null,muted=false;
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function seg(id,cb){$(id).querySelectorAll("button").forEach(b=>b.onclick=()=>{$(id).querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));cb(b.dataset.v);});}
+seg("segTime",v=>secs=+v);seg("segRounds",v=>rounds=+v);
+
+/* ================= SOUND ================= */
+let ac=null;
+const ctx=()=>{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume();return ac;};
+function tone(f,d,type="sine",g=.12,w=0,f2){if(muted)return;try{const a=ctx(),o=a.createOscillator(),v=a.createGain(),t=a.currentTime+w;o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);v.gain.setValueAtTime(.0001,t);v.gain.exponentialRampToValueAtTime(g,t+.01);v.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(v).connect(a.destination);o.start(t);o.stop(t+d+.05);}catch(e){}}
+function noise(dur,{w=0,g=.3,type="bandpass",freq=1800,q=.8,attack=.002,decay}={}){if(muted)return;try{const a=ctx(),n=Math.floor(a.sampleRate*dur),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+ const s=a.createBufferSource();s.buffer=b;const f=a.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q;const v=a.createGain(),t=a.currentTime+w;v.gain.setValueAtTime(.0001,t);v.gain.exponentialRampToValueAtTime(g,t+attack);v.gain.exponentialRampToValueAtTime(.0001,t+(decay||dur));s.connect(f).connect(v).connect(a.destination);s.start(t);s.stop(t+dur+.05);}catch(e){}}
+function clap(sec,density){for(let i=0;i<sec*density;i++){const w=Math.random()*sec;const fade=1-w/sec*.6;noise(.06,{w,g:.25*fade*(.6+Math.random()*.4),freq:1200+Math.random()*1600,q:1.2,decay:.05});}}
+function cheer(sec){noise(sec,{g:.18,freq:900,q:.5,attack:.25,decay:sec});noise(sec,{g:.1,freq:2600,q:.7,attack:.3,decay:sec});
+ for(let i=0;i<6;i++){const w=Math.random()*.8,f=420+Math.random()*350;tone(f,.5+Math.random()*.4,"triangle",.035,w,f*1.6);}}
+const sTick=()=>tone(1500,.03,"square",.05);
+const sTickHi=()=>{tone(1900,.06,"square",.09);};
+const sTimeUp=()=>{tone(300,.5,"sawtooth",.12);tone(200,.7,"sawtooth",.1,.15);};
+const sWrong=()=>{tone(230,.2,"square",.09);tone(160,.35,"square",.09,.17);};
+const sRight=()=>{tone(660,.14,"triangle",.14);tone(880,.14,"triangle",.14,.1);tone(1320,.35,"triangle",.14,.2);clap(2.2,22);cheer(1.8);};
+const sSelect=()=>tone(520,.08,"triangle",.1);
+const sPlace=()=>{tone(400,.12,"sine",.15,0,800);};
+const sWin=()=>{[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,.35,"triangle",.16,i*.14));clap(4,30);cheer(3.5);};
+$("mute").onclick=()=>{muted=!muted;$("mute").textContent=muted?"🔇":"🔊";};
+
+/* ================= BOARD ================= */
+function newBoard(){board=Array(9).fill(null);turn=startTeam;used=used||{};phase="board";renderBoard();$("winline").innerHTML="";setStatus();clearCanvas();}
+function renderBoard(win){const B=BANK[grade];$("board").innerHTML="";B.forEach((s,k)=>{const d=document.createElement("button");d.className="sq"+(s.center?" center":"")+(board[k]?" taken":"")+(win&&win.includes(k)?" win":"");
+ d.innerHTML=`<span class="ic">${s.i}</span><span class="tp">${s.t}</span>`+(board[k]?`<span class="mark ${board[k]}">${board[k]}</span>`:"");
+ d.onclick=()=>{if(board[k]||phase!=="board")return;openQ(k);};$("board").appendChild(d);});
+ $("lX").textContent=names.X;$("lO").textContent=names.O;$("wX").textContent=wins.X;$("wO").textContent=wins.O;
+ $("tX").classList.toggle("turn",turn==="X"&&phase!=="over");$("tO").classList.toggle("turn",turn==="O"&&phase!=="over");}
+function setStatus(t){$("status").innerHTML=t||`Round ${round} · <span style="color:${turn==="X"?"var(--x)":"var(--o)"}">${names[turn]} (${turn})</span>, choose a square`;}
+const other=t=>t==="X"?"O":"X";
+
+/* ================= QUESTION ================= */
+function pick(k){used[grade+k]=used[grade+k]||[];const qs=BANK[grade][k].qs;let free=qs.map((_,i)=>i).filter(i=>!used[grade+k].includes(i));if(!free.length){used[grade+k]=[];free=qs.map((_,i)=>i);}
+ const i=free[Math.floor(Math.random()*free.length)];used[grade+k].push(i);return qs[i];}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function openQ(k){sSelect();phase="q";stealer=null;const sq=BANK[grade][k];const q=pick(k);curQ={k,q,owner:turn};
+ $("boardWrap").style.display="none";$("qpanel").classList.add("on");$("status").innerHTML="";
+ $("qtopic").textContent=sq.i+" "+sq.t+(sq.center?" ★ harder":"");whoChip(turn,"answers");
+ $("qtext").innerHTML=q.q;const order=q.o.length===3?[0,1,2]:shuffle([0,1,2,3]);
+ $("opts").innerHTML=order.map((i,n)=>`<button class="opt" data-i="${i}"><b>${"ABCD"[n]}</b><span>${q.o[i]}</span></button>`).join("");
+ $("opts").style.gridTemplateColumns=q.o.length===3?"repeat(3,1fr)":"1fr 1fr";
+ $("opts").querySelectorAll(".opt").forEach(b=>b.onclick=()=>answer(b,+b.dataset.i));
+ $("banner").textContent="";$("explain").className="";$("explain").innerHTML="";$("backBtn").style.display="none";$("revealBtn").style.display="";
+ if($("autoClr").classList.contains("on"))clearCanvas();startTimer(secs);renderBoard();}
+function whoChip(t,verb){const c=$("qwho");c.textContent=`${t} · ${names[t]} ${verb}`;c.style.color=t==="X"?"var(--x)":"var(--o)";c.style.borderColor=c.style.color;}
+function startTimer(s){clearInterval(tTimer);tLeft=s;paused=false;$("pauseBtn").textContent="⏸ Pause";paintTimer(s);
+ tTimer=setInterval(()=>{if(paused)return;tLeft--;paintTimer(s);if(tLeft<=0){clearInterval(tTimer);sTimeUp();miss(null,"⏰ Time is up!");}else if(tLeft<=5)sTickHi();else sTick();},1000);}
+function paintTimer(s){$("tnum").textContent=tLeft;$("tnum").classList.toggle("low",tLeft<=5);const f=$("tfill");f.style.width=(100*tLeft/s)+"%";f.style.background=tLeft<=5?"var(--red)":tLeft<=s/3?"var(--gold)":"var(--green)";}
+$("pauseBtn").onclick=()=>{paused=!paused;$("pauseBtn").textContent=paused?"▶ Resume":"⏸ Pause";};
+function answer(b,i){if(phase!=="q")return;const q=curQ.q;const team=stealer||curQ.owner;
+ if(i===q.a){clearInterval(tTimer);b.classList.add("right");lockOpts();sRight();confetti(team);
+  $("banner").innerHTML=`<span style="color:var(--green)">✔ Correct! The square goes to ${names[team]} (${team}).</span>`;board[curQ.k]=team;finish(true);}
+ else{b.classList.add("wrong");b.disabled=true;sWrong();miss(b,"✘ Not quite.");}}
+function miss(b,msg){if(phase!=="q")return;
+ if(!stealer){stealer=other(curQ.owner);whoChip(stealer,"can STEAL");$("banner").innerHTML=`<span style="color:var(--red)">${msg}</span> <span style="color:var(--gold)">STEAL! ${names[stealer]} (${stealer}) has one answer.</span>`;startTimer(Math.max(20,Math.round(secs/2)));}
+ else{clearInterval(tTimer);$("banner").innerHTML=`<span style="color:var(--red)">${msg} Nobody wins this square.</span>`;showRight();lockOpts();finish(false);}}
+function showRight(){const q=curQ.q;$("opts").querySelectorAll(".opt").forEach(o=>{if(+o.dataset.i===q.a)o.classList.add("right");});}
+function lockOpts(){$("opts").querySelectorAll(".opt").forEach(o=>o.disabled=true);}
+$("revealBtn").onclick=()=>{if(phase!=="q")return;clearInterval(tTimer);showRight();lockOpts();$("banner").innerHTML="Answer shown. Nobody wins this square.";finish(false);};
+function finish(){phase="done";$("explain").className="on";$("explain").innerHTML="💡 "+curQ.q.ex;$("revealBtn").style.display="none";$("backBtn").style.display="";}
+$("backBtn").onclick=()=>{$("qpanel").classList.remove("on");$("boardWrap").style.display="flex";phase="board";if(board[curQ.k])sPlace();
+ turn=other(curQ.owner);const w=winner();if(w)return roundOver(w);if(board.every(Boolean))return roundOver(null);renderBoard();setStatus();};
+function winner(){for(const L of LINES){const[a,b,c]=L;if(board[a]&&board[a]===board[b]&&board[a]===board[c])return{t:board[a],L};}return null;}
+function roundOver(w){phase="over";renderBoard(w&&w.L);
+ if(w){wins[w.t]++;renderBoard(w.L);drawLine(w.L,w.t);sWin();confetti(w.t);setTimeout(()=>confetti(w.t),600);}
+ const need=Math.ceil(rounds/2);const champ=wins.X>=need?"X":wins.O>=need?"O":null;const last=round>=rounds;
+ setTimeout(()=>{$("over").classList.add("on");
+  if(champ||last){const t=champ||(wins.X>wins.O?"X":wins.O>wins.X?"O":null);$("overTitle").innerHTML=t?`🏆 ${names[t]} WINS!`:"🤝 IT'S A DRAW!";$("overTitle").style.color=t==="X"?"var(--x)":t==="O"?"var(--o)":"#fff";
+   $("overSub").textContent=`Final score: ${names.X} ${wins.X} · ${names.O} ${wins.O}`;$("overBtn").textContent="New game";$("overBtn").onclick=()=>{$("over").classList.remove("on");show("setup");};if(t){sWin();}}
+  else{$("overTitle").innerHTML=w?`${w.t} wins round ${round}!`:`Round ${round} is a draw`;$("overTitle").style.color=w?(w.t==="X"?"var(--x)":"var(--o)"):"#fff";
+   $("overSub").textContent=`Score: ${names.X} ${wins.X} · ${names.O} ${wins.O}`;$("overBtn").textContent="Next round ▶";
+   $("overBtn").onclick=()=>{$("over").classList.remove("on");round++;startTeam=other(startTeam);newBoard();};}},w?1600:400);}
+function drawLine(L,t){const sq=[...$("board").children];const wrap=$("boardWrap").getBoundingClientRect();const c=k=>{const r=sq[k].getBoundingClientRect();return[r.left+r.width/2-wrap.left,r.top+r.height/2-wrap.top];};
+ const[a,b]=[c(L[0]),c(L[2])];$("winline").setAttribute("viewBox",`0 0 ${wrap.width} ${wrap.height}`);
+ $("winline").innerHTML=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${t==="X"?"#3fd0ff":"#ff5fc8"}" stroke-width="14" stroke-linecap="round" opacity=".9" stroke-dasharray="2000" stroke-dashoffset="2000"><animate attributeName="stroke-dashoffset" to="0" dur=".6s" fill="freeze"/></line>`;}
+function confetti(t){const c=t==="X"?["#3fd0ff","#ffffff","#ffcc4d","#9be7ff"]:["#ff5fc8","#ffffff","#ffcc4d","#ffb3e6"];for(let i=0;i<60;i++){const d=document.createElement("div");d.className="confetti";d.style.left=Math.random()*100+"vw";d.style.background=c[i%4];d.style.animationDuration=(1.8+Math.random()*2)+"s";d.style.animationDelay=Math.random()*.5+"s";document.body.appendChild(d);setTimeout(()=>d.remove(),4800);}}
+function show(id){$("setup").classList.toggle("on",id==="setup");$("game").classList.toggle("on",id==="game");}
+$("startBtn").onclick=()=>{ctx();names={X:$("nX").value.trim()||"Team X",O:$("nO").value.trim()||"Team O"};wins={X:0,O:0};round=1;startTeam="X";used={};show("game");fitCanvas();newBoard();};
+$("menu").onclick=()=>{if(confirm("End this game and go back to the settings?")){clearInterval(tTimer);$("qpanel").classList.remove("on");$("boardWrap").style.display="flex";show("setup");}};
+
+/* ================= WORKING SPACE ================= */
+const cv=$("cv"),cx=cv.getContext("2d");let strokes=[],cur=null,color="#142b4d",width=4,erase=false,grid=false;
+function fitCanvas(){const r=cv.getBoundingClientRect();if(!r.width)return;const d=devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;cx.setTransform(d,0,0,d,0,0);redraw();}
+function redraw(){const r=cv.getBoundingClientRect();cx.clearRect(0,0,r.width,r.height);
+ if(grid){cx.strokeStyle="#d9e1f2";cx.lineWidth=1;for(let x=0;x<r.width;x+=28){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,r.height);cx.stroke();}for(let y=0;y<r.height;y+=28){cx.beginPath();cx.moveTo(0,y);cx.lineTo(r.width,y);cx.stroke();}}
+ cx.lineCap=cx.lineJoin="round";
+ for(const s of strokes){cx.strokeStyle=s.e?"#fdfdf8":s.c;cx.lineWidth=s.e?28:s.w;cx.beginPath();s.p.forEach((p,i)=>{const x=p[0]*r.width,y=p[1]*r.height;i?cx.lineTo(x,y):cx.moveTo(x,y);});if(s.p.length===1)cx.lineTo(s.p[0][0]*r.width+.1,s.p[0][1]*r.height);cx.stroke();
+  if(s.e&&grid){/* redraw grid under eraser */}}
+ $("cvhint").style.display=strokes.length?"none":"flex";}
+const ptr=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height];};
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);cur={c:color,w:width,e:erase,p:[ptr(e)]};strokes.push(cur);redraw();});
+cv.addEventListener("pointermove",e=>{if(!cur)return;cur.p.push(ptr(e));redraw();});
+["pointerup","pointercancel","pointerleave"].forEach(n=>cv.addEventListener(n,()=>cur=null));
+function clearCanvas(){strokes=[];redraw();}
+document.querySelectorAll(".sw").forEach(b=>b.onclick=()=>{color=b.dataset.c;erase=false;$("eraser").classList.remove("on");document.querySelectorAll(".sw").forEach(x=>x.classList.toggle("on",x===b));});
+[["penS",2],["penM",4],["penL",8]].forEach(([id,w])=>$(id).onclick=()=>{width=w;["penS","penM","penL"].forEach(x=>$(x).classList.toggle("on",x===id));});
+$("eraser").onclick=()=>{erase=!erase;$("eraser").classList.toggle("on",erase);};
+$("undo").onclick=()=>{strokes.pop();redraw();};
+$("clear").onclick=clearCanvas;
+$("gridBtn").onclick=()=>{grid=!grid;$("gridBtn").classList.toggle("on",grid);redraw();};
+$("autoClr").onclick=()=>$("autoClr").classList.toggle("on");
+addEventListener("resize",()=>{fitCanvas();});
+</script>
+</body>
+</html>
